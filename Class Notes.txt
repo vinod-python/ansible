@@ -7,3 +7,168 @@ Class 1
 Docker
 =======
 
+How to Install Docker?
+===================
+
+yum install docker ----- thsi  install both client and the server
+
+
+systemctl enable docekr  ---- redhat
+
+systemctl status docker   ---- redhat
+
+
+------ubuntu-------
+service docker status ------ check in the ubuntu
+service docker start  
+service docker restart
+service docker stop
+
+
+docker images                ----------  List the images present locally
+docker run hello-world     --------- running the local hello-world , if not found it searches in  remote registry
+
+docker run hello-world is equivalent to docker run hello-world:latest  
+Note: By default it downloads the latest image
+
+to pull the specified version use the command below:
+
+docker pull <image_name> :version
+
+root@ubuntu:~# docker images
+REPOSITORY          TAG                 IMAGE ID            CREATED             SIZE
+hello-world         latest              4ab4c602aa5e        2 months ago        1.84kB
+ubuntu              latest              16508e5c265d        2 months ago        84.1MB
+
+root@ubuntu:~# docker pull ubuntu:18.04
+18.04: Pulling from library/ubuntu
+473ede7ed136: Pull complete 
+c46b5fa4d940: Pull complete 
+93ae3df89c92: Pull complete 
+6b1eed27cade: Pull complete 
+Digest: sha256:29934af957c53004d7fb6340139880d23fb1952505a15d69a03af0d1418878cb
+Status: Downloaded newer image for ubuntu:18.04
+
+root@ubuntu:~# docker images
+REPOSITORY          TAG                 IMAGE ID            CREATED             SIZE
+ubuntu              18.04               ea4c82dcd15a        4 weeks ago         85.8MB
+hello-world         latest              4ab4c602aa5e        2 months ago        1.84kB
+ubuntu              latest              16508e5c265d        2 months ago        84.1MB
+
+Inspecting the image using the command:
+
+docker image inspect <image_name>:<version>
+
+root@ubuntu:~# docker image inspect ubuntu:18.04
+[
+    {
+        "Id": "sha256:ea4c82dcd15a33e3e9c4c37050def20476856a08e59526fbe533cc4e98387e39",
+        "RepoTags": [
+            "ubuntu:18.04"
+        ],
+        "RepoDigests": [
+            "ubuntu@sha256:29934af957c53004d7fb6340139880d23fb1952505a15d69a03af0d1418878cb"
+        ],
+        "Parent": "",
+        "Comment": "",
+        "Created": "2018-10-19T00:47:56.963343052Z",
+        "Container": "28a7fdb71f8e8c20be3188992efc113dad17fcde13a2766c1c1dee2f556cd572",
+        "ContainerConfig": {
+            "Hostname": "28a7fdb71f8e",
+            "Domainname": "",
+            "User": "",
+            "AttachStdin": false,
+            "AttachStdout": false,
+            "AttachStderr": false,
+            "Tty": false,
+            "OpenStdin": false,
+            "StdinOnce": false,
+            "Env": [
+                "PATH=/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin"
+            ],
+            "Cmd": [
+                "/bin/sh",
+                "-c",
+                "#(nop) ",
+                "CMD [\"/bin/bash\"]"
+            ],
+            "ArgsEscaped": true,
+            "Image": "sha256:090c1f21fefc845f5279be616f962136722252041438184cd04bbafe6139aafd",
+            "Volumes": null,
+            "WorkingDir": "",
+            "Entrypoint": null,
+            "OnBuild": null,
+            "Labels": {}
+        },
+        "DockerVersion": "17.06.2-ce",
+        "Author": "",
+        "Config": {
+            "Hostname": "",
+            "Domainname": "",
+            "User": "",
+            "AttachStdin": false,
+            "AttachStdout": false,
+            "AttachStderr": false,
+            "Tty": false,
+            "OpenStdin": false,
+            "StdinOnce": false,
+            "Env": [
+                "PATH=/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin"
+            ],
+            "Cmd": [
+                "/bin/bash"
+            ],
+            "ArgsEscaped": true,
+            "Image": "sha256:090c1f21fefc845f5279be616f962136722252041438184cd04bbafe6139aafd",
+            "Volumes": null,
+            "WorkingDir": "",
+            "Entrypoint": null,
+            "OnBuild": null,
+            "Labels": null
+        },
+        "Architecture": "amd64",
+        "Os": "linux",
+        "Size": 85848814,
+        "VirtualSize": 85848814,
+        "GraphDriver": {
+            "Data": {
+                "LowerDir": "/var/lib/docker/overlay2/7c1a7a4874c5df27baa4e491a74a425e306a59f40253f12ff0c4ecf1c2593d1c/diff:/var/lib/docker/overlay2/a89aac763d5a48e75c56a4ad290de2a42cf78f56f7880345765688e92210a67b/diff:/var/lib/docker/overlay2/0fc0f75eab648cf133c735c0ce0ccfffda12bd7807b37541c699a32c1f422942/diff",
+                "MergedDir": "/var/lib/docker/overlay2/950b2830b358e91942a1ddd9fcc2cef0a4a72589aeaf547aec0e4356afbedf7d/merged",
+                "UpperDir": "/var/lib/docker/overlay2/950b2830b358e91942a1ddd9fcc2cef0a4a72589aeaf547aec0e4356afbedf7d/diff",
+                "WorkDir": "/var/lib/docker/overlay2/950b2830b358e91942a1ddd9fcc2cef0a4a72589aeaf547aec0e4356afbedf7d/work"
+            },
+            "Name": "overlay2"
+        },
+        "RootFS": {
+            "Type": "layers",
+            "Layers": [
+                "sha256:102645f1cf722254bbfb7135b524db45fbbac400e79e4d54266c000a5f5bc400",
+                "sha256:ae1f631f14b7667ca37dca207c631d64947c60d923995cf0d73ceb1b08c406bb",
+                "sha256:2146d867acf390370d4d0c7b51951551e0e91fb600b69dbc8922d531b05b12bc",
+                "sha256:76c033092e100f56899d7402823c5cb6ce345442b3382d7b240350ef4252187e"
+            ]
+        },
+        "Metadata": {
+            "LastTagTime": "0001-01-01T00:00:00Z"
+        }
+    }
+]
+
+
+
+
+To generate this message, Docker took the following steps:
+ 1. The Docker client contacted the Docker daemon.
+ 2. The Docker daemon pulled the "hello-world" image from the Docker Hub.
+    (amd64)
+ 3. The Docker daemon created a new container from that image which runs the
+    executable that produces the output you are currently reading.
+ 4. The Docker daemon streamed that output to the Docker client, which sent it
+    to your terminal.
+
+
+To try something more ambitious, you can run an Ubuntu container with:
+ $ docker run -it ubuntu bash
+
+
+
