@@ -194,6 +194,49 @@ root@ubuntu:~# docker ps -a | grep -i cb72de98b90e
 cb72de98b90e        ubuntu               "/bin/bash"         7 minutes ago       Exited (127) 39 seconds ago                       objective_sinoussi
 
 
+to run in detached mode : use -d option along with -it
+please check below:
+
+root@ubuntu:~# docker run -dit ubuntu /bin/bash
+2eab86e8cb51efd4c001def6d20c0df0b4bb21ca71f604e4de4b536d3446371a
+root@ubuntu:~# docker ps
+CONTAINER ID        IMAGE               COMMAND             CREATED             STATUS              PORTS               NAMES
+2eab86e8cb51        ubuntu              "/bin/bash"         7 seconds ago       Up 6 seconds                            youthful_mestorf
+
+docker exec -it ubuntu /bin/bash
+
+
+root@ubuntu:~# docker ps
+CONTAINER ID        IMAGE               COMMAND             CREATED             STATUS              PORTS               NAMES
+2eab86e8cb51        ubuntu              "/bin/bash"         8 minutes ago       Up 8 minutes                            youthful_mestorf
+root@ubuntu:~# docker exec -it youthful_mestorf bash
+
+root@ubuntu:~# docker run -d --name nginx1 --hostname nginx1 nginx
+Unable to find image 'nginx:latest' locally
+latest: Pulling from library/nginx
+a5a6f2f73cd8: Pull complete 
+67da5fbcb7a0: Pull complete 
+e82455fa5628: Pull complete 
+Digest: sha256:31b8e90a349d1fce7621f5a5a08e4fc519b634f7d3feb09d53fac9b12aa4d991
+Status: Downloaded newer image for nginx:latest
+a2c0fca87644a49df0b63dcc639dbeea9bf1c757aa48d48da134f3068163e19b
+
+
+
+root@ubuntu:~# docker ps
+CONTAINER ID        IMAGE               COMMAND                  CREATED             STATUS              PORTS               NAMES
+a2c0fca87644        nginx               "nginx -g 'daemon of…"   5 minutes ago       Up 5 minutes        80/tcp              nginx1
+2eab86e8cb51        ubuntu              "/bin/bash"              17 minutes ago      Up 17 minutes                           youthful_mestorf
+
+to find the ip of the container using the inspect
+docker inspect <container-id>
+
+root@ubuntu:~# docker inspect 2eab86e8cb51 | grep -i ipa
+            "SecondaryIPAddresses": null,
+            "IPAddress": "172.17.0.2",
+                    "IPAMConfig": null,
+                    "IPAddress": "172.17.0.2",
+
 
 
 
