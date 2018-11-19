@@ -238,6 +238,459 @@ root@ubuntu:~# docker inspect 2eab86e8cb51 | grep -i ipa
                     "IPAddress": "172.17.0.2",
 
 
+docker ps -q returns the container id of the running container
+
+
+Stop and remove the containers
+
+docker stop ($docker ps -q) && docker rm $(docker ps -aq)
+
+
+root@ubuntu:~# docker ps
+CONTAINER ID        IMAGE               COMMAND             CREATED             STATUS              PORTS               NAMES
+root@ubuntu:~# docker run -d --name nginx1 --hostname nginx1 nginx
+9ffb74069e000c070c670ee4494b9eb00f6dfbda4b1efdef62233290c2ad3994
+root@ubuntu:~# docker ps
+CONTAINER ID        IMAGE               COMMAND                  CREATED             STATUS              PORTS               NAMES
+9ffb74069e00        nginx               "nginx -g 'daemon of…"   2 seconds ago       Up 1 second         80/tcp              nginx1
+
+root@ubuntu:~# docker exec -it 9ffb74069e00 /bin/bash
+root@nginx1:/# ls -ltr
+
+total 68
+drwxr-xr-x   2 root root 4096 Oct 20 10:40 home
+drwxr-xr-x   2 root root 4096 Oct 20 10:40 boot
+drwxr-xr-x   1 root root 4096 Nov 12 00:00 var
+drwxr-xr-x   1 root root 4096 Nov 12 00:00 usr
+drwxr-xr-x   2 root root 4096 Nov 12 00:00 srv
+drwxr-xr-x   2 root root 4096 Nov 12 00:00 sbin
+drwx------   2 root root 4096 Nov 12 00:00 root
+drwxr-xr-x   2 root root 4096 Nov 12 00:00 opt
+drwxr-xr-x   2 root root 4096 Nov 12 00:00 mnt
+drwxr-xr-x   2 root root 4096 Nov 12 00:00 media
+drwxr-xr-x   2 root root 4096 Nov 12 00:00 lib64
+drwxr-xr-x   1 root root 4096 Nov 12 00:00 lib
+drwxr-xr-x   2 root root 4096 Nov 12 00:00 bin
+drwxrwxrwt   1 root root 4096 Nov 16 13:32 tmp
+drwxr-xr-x   1 root root 4096 Nov 19 09:11 etc
+dr-xr-xr-x 297 root root    0 Nov 19 09:11 proc
+dr-xr-xr-x  13 root root    0 Nov 19 09:11 sys
+drwxr-xr-x   5 root root  340 Nov 19 09:11 dev
+drwxr-xr-x   1 root root 4096 Nov 19 09:11 run
+
+root@nginx1:/# echo "My first file" > file1.txt
+root@nginx1:/# ls -ltr file1.txt
+-rw-r--r-- 1 root root 14 Nov 19 09:14 file1.txt
+
+
+root@nginx1:/# exit
+exit
+root@ubuntu:~# docker ps
+CONTAINER ID        IMAGE               COMMAND                  CREATED             STATUS              PORTS               NAMES
+9ffb74069e00        nginx               "nginx -g 'daemon of…"   3 minutes ago       Up 3 minutes        80/tcp              nginx1
+root@ubuntu:~# docker stop nginx1
+nginx1
+
+
+root@ubuntu:~# docker ps
+CONTAINER ID        IMAGE               COMMAND             CREATED             STATUS              PORTS               NAMES
+root@ubuntu:~# 
+
+
+root@ubuntu:~# docker start nginx1
+nginx1
+
+
+root@ubuntu:~# docker exec -it nginx1 /bin/bash
+root@nginx1:/# ls -ltr
+total 72
+drwxr-xr-x   2 root root 4096 Oct 20 10:40 home
+drwxr-xr-x   2 root root 4096 Oct 20 10:40 boot
+drwxr-xr-x   1 root root 4096 Nov 12 00:00 var
+drwxr-xr-x   1 root root 4096 Nov 12 00:00 usr
+drwxr-xr-x   2 root root 4096 Nov 12 00:00 srv
+drwxr-xr-x   2 root root 4096 Nov 12 00:00 sbin
+drwxr-xr-x   2 root root 4096 Nov 12 00:00 opt
+drwxr-xr-x   2 root root 4096 Nov 12 00:00 mnt
+drwxr-xr-x   2 root root 4096 Nov 12 00:00 media
+drwxr-xr-x   2 root root 4096 Nov 12 00:00 lib64
+drwxr-xr-x   1 root root 4096 Nov 12 00:00 lib
+drwxr-xr-x   2 root root 4096 Nov 12 00:00 bin
+drwxrwxrwt   1 root root 4096 Nov 16 13:32 tmp
+drwxr-xr-x   1 root root 4096 Nov 19 09:11 etc
+dr-xr-xr-x  13 root root    0 Nov 19 09:13 sys
+-rw-r--r--   1 root root   14 Nov 19 09:14 file1.txt
+drwx------   1 root root 4096 Nov 19 09:15 root
+dr-xr-xr-x 296 root root    0 Nov 19 09:16 proc
+drwxr-xr-x   5 root root  340 Nov 19 09:16 dev
+drwxr-xr-x   1 root root 4096 Nov 19 09:16 run
+
+
+root@nginx1:/# cat file1.txt 
+My first file
+
+
+
+
+
+used for port forwarding 
+docker run -dit --name nginx1 --hostname -p 8001:80 nginx1 nginx
+
+
+
+Created a file in the /var/day1 named testFile.txt
+
+root@ubuntu:/var/day1# ls -ltr
+total 4
+-rwxr-xr-x 1 root root 20 Nov 19 01:26 testFile.txt
+
+
+root@ubuntu:/var/day1# docker run -d --name nginx1 --hostname nginx -p 8001:80 -v /var/day1/:/root/Day1 nginx
+0f70295bb76540b87bbd876abf4ff24f0be77e159a3f6f2c48bb67e7a8449de7
+
+
+root@ubuntu:/var/day1# docker ps
+CONTAINER ID        IMAGE               COMMAND                  CREATED             STATUS              PORTS                  NAMES
+0f70295bb765        nginx               "nginx -g 'daemon of…"   26 seconds ago      Up 25 seconds       0.0.0.0:8001->80/tcp   nginx1
+root@ubuntu:/var/day1# docker exec -it nignx bash
+Error: No such container: nignx
+root@ubuntu:/var/day1# docker exec -it 0f70295bb765 /bin/bash
+root@nginx:/# ls -ltr /root/Day1/
+total 4
+-rwxr-xr-x 1 root root 20 Nov 19 09:26 testFile.txt
+root@nginx:/# cat /root/Day1/testFile.txt 
+my file in the day1
+
+
+
+
+root@ubuntu:/var/day1# echo "another file file2" > testFile2.txt
+root@ubuntu:/var/day1# ls -ltr
+total 8
+-rwxr-xr-x 1 root root 20 Nov 19 01:26 testFile.txt
+-rw-r--r-- 1 root root 19 Nov 19 01:36 testFile2.txt
+root@ubuntu:/var/day1# docker ps
+CONTAINER ID        IMAGE               COMMAND                  CREATED             STATUS              PORTS                  NAMES
+0f70295bb765        nginx               "nginx -g 'daemon of…"   8 minutes ago       Up 8 minutes        0.0.0.0:8001->80/tcp   nginx1
+root@ubuntu:/var/day1# docker exec -it 0f70295bb765 /bin/bash
+root@nginx:/# cd /root/Day1/
+root@nginx:~/Day1# ls -ltr
+total 8
+-rwxr-xr-x 1 root root 20 Nov 19 09:26 testFile.txt
+-rw-r--r-- 1 root root 19 Nov 19 09:36 testFile2.txt
+root@nginx:~/Day1# cat testFile2.txt 
+another file file2
+
+
+
+
+root@nginx:~/Day1# echo "testFile file 3 added in the container" > testFile3.txt
+root@nginx:~/Day1# ls -tlr
+total 12
+-rwxr-xr-x 1 root root 20 Nov 19 09:26 testFile.txt
+-rw-r--r-- 1 root root 19 Nov 19 09:36 testFile2.txt
+-rw-r--r-- 1 root root 39 Nov 19 09:39 testFile3..txt
+root@nginx:~/Day1# exit
+exit
+root@ubuntu:/var/day1# ls -tlr
+total 12
+-rwxr-xr-x 1 root root 20 Nov 19 01:26 testFile.txt
+-rw-r--r-- 1 root root 19 Nov 19 01:36 testFile2.txt
+-rw-r--r-- 1 root root 39 Nov 19 01:39 testFile3..txt
+root@ubuntu:/var/day1# 
+
+
+command creating a network 
+docker network create <network name>
+
+
+root@ubuntu:/var/day1# docker network create my-network-1
+1801635af184ad2971c2cfa67b1f7e6df733eed09fc5ae0c3de67f1e60c30832
+
+root@ubuntu:/var/day1# docker network create my-network-2
+f24c7a62500e932ec40312a12a4612d4e2168bcc2da21db1314fc00d1bb5752b
+
+
+command to list the network list:
+docker network ls
+
+
+root@ubuntu:/var/day1# docker network ls
+NETWORK ID          NAME                DRIVER              SCOPE
+92aac0f13955        bridge              bridge              local
+661f25192363        host                host                local
+1801635af184        my-network-1        bridge              local
+f24c7a62500e        my-network-2        bridge              local
+a8a5e79257fb        none                null                local
+
+
+docker network inspect <network name>
+
+root@ubuntu:/var/day1# docker network inspect my-network-1 | grep -i subnet
+                    "Subnet": "172.18.0.0/16",
+root@ubuntu:/var/day1# 
+
+
+root@ubuntu:/var/day1# docker run -dit --name container1 --network=my-network-1 ubuntu /bin/bash
+1e8b32a32507d0c6d0ff22a04c3ed46cd42e7a021a99ab7b7f3427e5f50fb78e
+
+root@ubuntu:/var/day1# docker run -dit --name container2 --network=my-network-2 ubuntu /bin/bash
+70978ab91a0fe5608fb8b526f33bbe5ec04ae3c301798d591b02126242968376
+
+root@ubuntu:/var/day1# docker ps
+CONTAINER ID        IMAGE               COMMAND             CREATED             STATUS              PORTS               NAMES
+70978ab91a0f        ubuntu              "/bin/bash"         3 seconds ago       Up 2 seconds                            container2
+1e8b32a32507        ubuntu              "/bin/bash"         15 seconds ago      Up 13 seconds                           container1
+
+
+
+
+oot@ubuntu:/var/day1# docker exec -it 70978ab91a0f /bin/bash
+root@70978ab91a0f:/# exit
+exit
+root@ubuntu:/var/day1# docker inspect 1e8b32a32507 | grep -i ipa
+            "SecondaryIPAddresses": null,
+            "IPAddress": "",
+                    "IPAMConfig": null,
+                    "IPAddress": "172.18.0.2",
+root@ubuntu:/var/day1# docker exec -it 70978ab91a0f /bin/bash
+root@70978ab91a0f:/# ping 172.18.0.2
+bash: ping: command not found
+
+
+container1 ip: 172.18.0.2
+Container2 IP: 172.19.0.2
+
+
+connected the container2 to network1
+
+docker network connect my-network-1 container2
+
+
+docker network inspect my-network-1
+
+       "Containers": {
+            "1e8b32a32507d0c6d0ff22a04c3ed46cd42e7a021a99ab7b7f3427e5f50fb78e": {
+                "Name": "container1",
+                "EndpointID": "c4490bb6acd9018b81ffe2320daf9f4c46b308f23ee2f6f00f048fa260957e8e",
+                "MacAddress": "02:42:ac:12:00:02",
+                "IPv4Address": "172.18.0.2/16",
+                "IPv6Address": ""
+            },
+            "70978ab91a0fe5608fb8b526f33bbe5ec04ae3c301798d591b02126242968376": {
+                "Name": "container2",
+                "EndpointID": "7ad55f00cc0e3d43d51711df3cba06562eb91a9a8cea1e5da9a61ef4cb001b69",
+                "MacAddress": "02:42:ac:12:00:03",
+                "IPv4Address": "172.18.0.3/16",
+                "IPv6Address": ""
+            }
+        },
+        "Options": {},
+        "Labels": {}
+    }
+
+
+Installing the MYSQL
+
+refer hub.docker.com --> search mysql
+
+docker run --name dockerSQL -e MYSQL_ROOT_PASSWORD=vinod -d mysql:5.7.24
+
+
+root@ubuntu:/var/day1# docker run --name dockerSQL -e MYSQL_ROOT_PASSWORD=vinod -d mysql
+Unable to find image 'mysql:latest' locally
+latest: Pulling from library/mysql
+a5a6f2f73cd8: Already exists 
+936836019e67: Pull complete 
+283fa4c95fb4: Pull complete 
+1f212fb371f9: Pull complete 
+e2ae0d063e89: Pull complete 
+5ed0ae805b65: Pull complete 
+0283dc49ef4e: Pull complete 
+a7e1170b4fdb: Pull complete 
+88918a9e4742: Pull complete 
+241282fa67c2: Pull complete 
+b0fecf619210: Pull complete 
+bebf9f901dcc: Pull complete 
+Digest: sha256:b7f7479f0a2e7a3f4ce008329572f3497075dc000d8b89bac3134b0fb0288de8
+Status: Downloaded newer image for mysql:latest
+4dff68bf4fa80a62b1903d758ac87d50999e20e4cc580b9b46ac02748f77aa04
+
+
+MSQL name is dockerSQL
+
+root@ubuntu:/var/day1# docker run --name some-wordpress --link dockerSQL:mysql -d wordpress
+2262563f126eb2736fc7a5490b2148fc099a4c1d397f1eb50ea9316c38d943c6
+
+root@ubuntu:/var/day1# docker run --name dockerSQL -e MYSQL_ROOT_PASSWORD=vinod -d mysql:5.7.24
+Unable to find image 'mysql:5.7.24' locally
+5.7.24: Pulling from library/mysql
+a5a6f2f73cd8: Already exists 
+936836019e67: Already exists 
+283fa4c95fb4: Already exists 
+1f212fb371f9: Already exists 
+e2ae0d063e89: Already exists 
+5ed0ae805b65: Already exists 
+0283dc49ef4e: Already exists 
+a7905d9fbbea: Pull complete 
+cd2a65837235: Pull complete 
+5f906b8da5fe: Pull complete 
+e81e51815567: Pull complete 
+Digest: sha256:c23e9bfe66eeffc990cf6bce4bb0e9c5c85eb908170f3b3dde3e9a12c5a91689
+Status: Downloaded newer image for mysql:5.7.24
+de6fc178f5b62fe7984cdd4c15500ca1e42cda6f9505716315a23dab74185955
+
+root@ubuntu:/var/day1# docker run --name some-wordpress --link dockerSQL:mysql -d wordpress
+833bca6f3a52c959a0aaf11aec4d0ec1b8152c20ee4de39d6299b28a1f435274
+
+
+root@ubuntu:/var/day1# cat /etc/hosts
+127.0.0.1	localhost
+127.0.1.1	ubuntu
+
+# The following lines are desirable for IPv6 capable hosts
+::1     ip6-localhost ip6-loopback
+fe00::0 ip6-localnet
+ff00::0 ip6-mcastprefix
+ff02::1 ip6-allnodes
+ff02::2 ip6-allrouters
+
+root@ubuntu:/var/day1# docker ps
+CONTAINER ID        IMAGE               COMMAND                  CREATED             STATUS              PORTS                 NAMES
+833bca6f3a52        wordpress           "docker-entrypoint.s…"   20 minutes ago      Up 20 minutes       80/tcp                some-wordpress
+de6fc178f5b6        mysql:5.7.24        "docker-entrypoint.s…"   20 minutes ago      Up 20 minutes       3306/tcp, 33060/tcp   dockerSQL
+
+
+
+
+git clone https://github.com/tektutor/ubuntu-ansible.git
+
+root@ubuntu:/var# git clone https://github.com/tektutor/ubuntu-ansible.git
+Cloning into 'ubuntu-ansible'...
+remote: Enumerating objects: 6, done.
+remote: Total 6 (delta 0), reused 0 (delta 0), pack-reused 6
+Unpacking objects: 100% (6/6), done.
+
+
+root@ubuntu:/var# cd ubuntu-ansible/
+root@ubuntu:/var/ubuntu-ansible# ls -ltr
+total 4
+-rw-r--r-- 1 root root 555 Nov 19 03:17 Dockerfile
+
+
+Docker file
+===========
+
+root@ubuntu:/var/ubuntu-ansible# cat Dockerfile 
+FROM ubuntu:16.04
+
+RUN apt-get update && apt-get install -y openssh-server python-minimal
+RUN mkdir /var/run/sshd
+RUN echo 'root:root' | chpasswd
+#RUN echo 'jenkins:jenkins' | chpasswd
+RUN sed -i 's/PermitRootLogin prohibit-password/PermitRootLogin yes/' /etc/ssh/sshd_config
+
+# SSH login fix. Otherwise user is kicked off after login
+RUN sed 's@session\s*required\s*pam_loginuid.so@session optional pam_loginuid.so@g' -i /etc/pam.d/sshd
+
+#ENV NOTVISIBLE "in users profile"
+#RUN echo "export VISIBLE=now" >> /etc/profile
+
+COPY authorized_keys /root/.ssh/authorized_keys
+
+#this opens port 22 for ssh and 80 for any web-servers(http)
+EXPOSE 22
+EXPOSE 80 
+
+#configures ssh server as startup application when containers starts
+CMD ["/usr/sbin/sshd", "-D"]
+
+
+docker build -t <name of the company>/<image-name> <path>
+
+docker build -t verizon/ansible-ubuntu.
+
+
+to generate the public keys
+===========================
+ssh-keygen
+
+cp /root/id_rsa.pub authorized_keys
+
+
+
+
+root@ubuntu:/var/ubuntu-ansible# docker build -t verizon/ansible-ubuntu .
+Sending build context to Docker daemon   59.9kB
+Step 1/10 : FROM ubuntu:16.04
+ ---> 4a689991aa24
+Step 2/10 : RUN apt-get update && apt-get install -y openssh-server python-minimal
+ ---> Using cache
+ ---> 8940babef943
+Step 3/10 : RUN mkdir /var/run/sshd
+ ---> Using cache
+ ---> 1ab9aa4cd3d5
+Step 4/10 : RUN echo 'root:root' | chpasswd
+ ---> Using cache
+ ---> ad850e8cd30a
+Step 5/10 : RUN sed -i 's/PermitRootLogin prohibit-password/PermitRootLogin yes/' /etc/ssh/sshd_config
+ ---> Using cache
+ ---> 009fe6620560
+Step 6/10 : RUN sed 's@session\s*required\s*pam_loginuid.so@session optional pam_loginuid.so@g' -i /etc/pam.d/sshd
+ ---> Using cache
+ ---> 896e454408ef
+Step 7/10 : COPY authorized_keys /root/.ssh/authorized_keys
+ ---> 1d4c824d90ca
+Step 8/10 : EXPOSE 22
+ ---> Running in 7dc4725849b5
+Removing intermediate container 7dc4725849b5
+ ---> 44a95d3ab45b
+Step 9/10 : EXPOSE 80
+ ---> Running in 9702bc7cc375
+Removing intermediate container 9702bc7cc375
+ ---> 515cbc20c093
+Step 10/10 : CMD ["/usr/sbin/sshd", "-D"]
+ ---> Running in 3770a035e475
+Removing intermediate container 3770a035e475
+ ---> 23d8b4a32593
+Successfully built 23d8b4a32593
+Successfully tagged verizon/ansible-ubuntu:latest
+
+
+docker run -d --name ubuntu1 --hostname ubuntu1 -p 8001:80 -p 2001:22 verizon/ansible-ubuntu
+
+root@ubuntu:/var/ubuntu-ansible# docker run -d --name ubuntu1 --hostname ubuntu1 -p 8001:80 -p 2001:22 verizon/ansible-ubuntu
+6fbc1decd5bac4efb38e5cb0731b5565c9e0ba2a8501a6e8ba05304b19441c70
+root@ubuntu:/var/ubuntu-ansible# docker ps
+CONTAINER ID        IMAGE                    COMMAND                  CREATED             STATUS              PORTS                                        NAMES
+6fbc1decd5ba        verizon/ansible-ubuntu   "/usr/sbin/sshd -D"      3 seconds ago       Up 2 seconds        0.0.0.0:2001->22/tcp, 0.0.0.0:8001->80/tcp   ubuntu1
+833bca6f3a52        wordpress                "docker-entrypoint.s…"   2 hours ago         Up 2 hours          80/tcp                                       some-wordpress
+de6fc178f5b6        mysql:5.7.24             "docker-entrypoint.s…"   2 hours ago         Up 2 hours          3306/tcp, 33060/tcp                          dockerSQL
+
+
+root@ubuntu:/var/ubuntu-ansible# docker inspect ubuntu1 | grep -i ipa
+            "SecondaryIPAddresses": null,
+            "IPAddress": "172.17.0.4",
+                    "IPAMConfig": null,
+                    "IPAddress": "172.17.0.4",
+
+
+
+root@ubuntu:/var/ubuntu-ansible# ssh 172.17.0.4
+Welcome to Ubuntu 16.04.5 LTS (GNU/Linux 4.15.0-39-generic x86_64)
+
+ * Documentation:  https://help.ubuntu.com
+ * Management:     https://landscape.canonical.com
+ * Support:        https://ubuntu.com/advantage
+Last login: Mon Nov 19 12:38:23 2018 from 172.17.0.1
+
+
+
+<some_random_name> <ansible_port=> <ansible_host=> <ansible_user=> ansible_private_key_file=/root/.ssh/id_rsa
+
+root@ubuntu:/var/day1# cat ansblInventory 
+[all]
+ubuntu1 ansible_port=2001 ansible_host=localhost ansible_user=root ansible_private_key_file=/root/.ssh/id_rsa
 
 
 
