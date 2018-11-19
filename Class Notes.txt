@@ -170,5 +170,36 @@ To generate this message, Docker took the following steps:
 To try something more ambitious, you can run an Ubuntu container with:
  $ docker run -it ubuntu bash
 
+docker ps : shows the running containers 
+
+docker ps -a shows all the containers irrespctive of the state of the container
+
+root@ubuntu:~# docker ps
+CONTAINER ID        IMAGE               COMMAND             CREATED             STATUS              PORTS               NAMES
+root@ubuntu:~# docker ps -a
+CONTAINER ID        IMAGE                COMMAND             CREATED             STATUS                      PORTS               NAMES
+772f31569d87        hello-world:latest   "/hello"            18 minutes ago      Exited (0) 18 minutes ago                       optimistic_euler
+b4101c004f03        hello-world          "/hello"            23 minutes ago      Exited (0) 23 minutes ago                       priceless_visvesvaraya
+5026d20c7793        ubuntu               "bash"              2 months ago        Exited (127) 2 months ago                       optimistic_allen
+
+
+docker run -it <image_name> /bin/bash
+
+Note: -it : is used to set the interactivity tty type for that image in bash
+
+root@ubuntu:~# docker run -it ubuntu /bin/bash
+root@cb72de98b90e:/# docker images
+
+root@ubuntu:~# docker ps -a | grep -i cb72de98b90e
+cb72de98b90e        ubuntu               "/bin/bash"         7 minutes ago       Exited (127) 39 seconds ago                       objective_sinoussi
+
+
+
+
+
+
+References:
+
+1. http://www.tektutor.org/commonly-used-docker-commands/
 
 
