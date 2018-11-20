@@ -25,6 +25,11 @@ service docker restart
 service docker stop
 
 
+creating a docker image:
+========================
+
+docker build -t <image_name>:<tag_name> <path>
+
 docker images                ----------  List the images present locally
 docker run hello-world     --------- running the local hello-world , if not found it searches in  remote registry
 
@@ -1072,6 +1077,356 @@ root@ubuntu:/var/day1# cat ping_playbook1.yaml
      - name: Iterate the items
        shell: echo "{{item}}"
        with_items: "{{something}}"
+
+
+
+
+installing nginx using the playbook
+
+root@ubuntu:/var/day1# cat install-nginx.yml 
+- name: This playbook will demostarte insatlling, configuring and deploying webpage
+  hosts: all
+  tasks: Install nginx web server
+  apt: name=nginx state:latest update_cache=yes
+
+
+root@ubuntu:/var/day1# ansible-playbook -i ansblInventory install-nginx.yml
+
+
+copy file from the container
+
+root@ubuntu:/var/day1# docker cp ubuntu1:/etc/nginx/sites-available/default .
+
+
+Creating after the modifications done in the default file
+
+
+root@ubuntu:/var/day1# cat install-nginx.yml 
+- name: This playbook will demostarte insatlling, configuring and deploying webpage
+  hosts: all
+  tasks:
+     - name: Install nginx web server
+       apt: name=nginx state=latest update_cache=yes
+     - name: configure nginx web server after modification
+       copy: src=default dest=/etc/nginx/sites-available/default backup=yes
+     - name: create the updated document root folder
+       file: path=/var/html state=directoy mode=0777
+     - name: Restart the nginx web server
+       service: name=nginx state=restarted
+     - name: Deploy the index.html file into Document root folder
+       template: src=index.html.j2 dest=/var/html/index.html
+
+- name: Check if the nginx web server is up and runnning
+  hosts: localhost
+  tasks:
+     - name: Access the web page
+       shell: "{{curl http://localhost:item}}"
+       with_sequence: start=8001 end=8003
+
+
+
+copy module: takes from src to dest  (dest should be present) Used to copy static files (meaning copies as it)
+file module: takes from path state and mode
+e.g. cretes a directoy under that path
+file: path=/var/html state=directoy mode=0777
+
+
+template module: copy's a dynamic file
+template: src=index.html.j2 dest=/var/html/index.html
+
+This index.html.j2 came from the pythons jinja module.
+.j2 is optional 
+
+
+
+root@ubuntu:/var/day1# cat index.html.j2 
+<html>
+	<head>Welcom to {{greeting_msg}}</head>
+	<body>
+		<h1>Configuraiton management tool used is {{cm_tool}}</h1>
+		<h1>Provisioned by {{provisioner_tool}}</h1>
+		<h1>Host name is {{ansible_nodename}}</h1>
+	</body>
+</html>
+
+
+root@ubuntu:/var/day1# cat install-nginx.yml 
+
+- name: This playbook will demostarte insatlling, configuring and deploying webpage
+  hosts: all
+  become: yes
+  vars:
+     - greeting_msg: DevOps
+     - cm_tool: Ansible
+     - provisioner_tool: Docker
+  tasks:
+     - name: Install nginx web server
+       apt: name=nginx state=latest update_cache=yes
+     - name: configure nginx web server after modification
+       copy: src=default dest=/etc/nginx/sites-available/default backup=yes
+     - name: create the updated document root folder
+       file: path=/var/html state=directory mode=0777
+     - name: Restart the nginx web server
+       #service: name=nginx state=restarted
+       command: service nginx restart
+     - name: Deploy the index.html file into Document root folder
+       template: src=index.html.j2 dest=/var/html/index.html
+- name: checking if the service is up and running
+  hosts: localhost
+  become: yes
+  tasks:
+     - name: check if the service is up
+       shell: "curl http://localhost:{{item}}"
+       with_sequence: start=8001 end=8004
+
+
+
+
+root@ubuntu:/var/day1# cat install-nginx-instl-curl.yml 
+- name: This playbook will demostarte insatlling, configuring and deploying webpage
+  hosts: all
+  become: yes
+  vars:
+     - greeting_msg: DevOps
+     - cm_tool: Ansible
+     - provisioner_tool: Docker
+  tasks:
+     - name: Install nginx web server
+       apt: name=nginx state=latest update_cache=yes
+     - name: configure nginx web server after modification
+       copy: src=default dest=/etc/nginx/sites-available/default backup=yes
+     - name: create the updated document root folder
+       file: path=/var/html state=directory mode=0777
+     - name: Restart the nginx web server
+       #service: name=nginx state=restarted
+       command: service nginx restart
+     - name: Deploy the index.html file into Document root folder
+       template: src=index.html.j2 dest=/var/html/index.html
+- name: install curl on the containers
+  hosts: all
+  become: yes
+  tasks:
+     - name: installing curl
+       apt: name=curl state=latest update_cache=yes
+     - name: Access the web page
+       shell: "curl http://localhost:80"
+
+
+copy: src=default dest=/etc/nginx/sites-available/default backup=yes
+
+root@ubuntu1:/var# ls -ltr /etc/nginx/sites-available/
+total 8
+-rw-r--r-- 1 root root 2074 Feb 11  2017 default.919.2018-11-20@09:36:02~
+-rw-r--r-- 1 root root 2102 Nov 20 09:36 default
+root@ubuntu1:/var# 
+
+
+file: path=/var/html state=directory mode=0777
+
+root@ubuntu1:/var# ls -ltr | grep html 
+drwxrwxrwx 2 root root  4096 Nov 20 09:43 html
+
+
+template: src=index.html.j2 dest=/var/html/index.html
+
+root@ubuntu1:/var/html# ls -ltr
+total 4
+-rw-r--r-- 1 root root 185 Nov 20 09:43 index.html
+root@ubuntu1:/var/html# cat index.html 
+<html>
+	<head>Welcom to DevOps</head>
+	<body>
+		<h1>Configuraiton management tool used is Ansible</h1>
+		<h1>Provisioned by Docker</h1>
+		<h1>Host name is ubuntu1</h1>
+	</body>
+</html>
+root@ubuntu1:/var/html# 
+
+
+
+we can run a command inside the container from the localmachine
+
+root@ubuntu:/var/day1# docker exec -i ubuntu1 curl "http://localhost:80"
+  % Total    % Received % Xferd  Average Speed   Time    Time     Time  Current
+                                 Dload  Upload   Total   Spent    Left  Speed
+100   185  100   185    0     0  18267    <html>:--:-- --:--:-- --:--:--     0
+	<head>Welcom to DevOps</head>
+	<body>
+		<h1>Configuraiton management tool used is Ansible</h1>
+		<h1>Provisioned by Docker</h1>
+		<h1>Host name is ubuntu1</h1>
+	</body>
+</html>
+  0 --:--:-- --:--:-- --:--:-- 18500
+
+
+
+
+usage of the docker_container module:
+
+to use this module we need to have docker-py installed , in order to install the docker-py we need to install the python
+
+
+
+root@ubuntu:/var/day1# cat provision-docker-containers.yml 
+- name: Provision the docker containers using the docker_container, Demonstartion
+  hosts: localhost
+  tasks:
+          - name: Provision Docker conatiner
+            docker_container:
+                    image: "verizon/ansible-ubuntu"
+                    name: "ubuntu{{item}}"
+                    state: started
+                    ports:
+                            - "800{{item}}:80"
+                            - "200{{item}}:22"
+            with_sequence: start=1 end=5
+
+
+Error without the python
+
+root@ubuntu:/var/day1# ansible-playbook -i ansblInventory provision-docker-containers.yml 
+
+PLAY [Provision the docker containers using the docker_container, Demonstartion] ***
+
+TASK [Gathering Facts] *********************************************************
+ok: [localhost]
+
+TASK [Provision Docker conatiner] **********************************************
+failed: [localhost] (item=1) => {"changed": false, "item": "1", "msg": "Failed to import docker-py - No module named docker. Try `pip install docker-py`"}
+failed: [localhost] (item=2) => {"changed": false, "item": "2", "msg": "Failed to import docker-py - No module named docker. Try `pip install docker-py`"}
+failed: [localhost] (item=3) => {"changed": false, "item": "3", "msg": "Failed to import docker-py - No module named docker. Try `pip install docker-py`"}
+failed: [localhost] (item=4) => {"changed": false, "item": "4", "msg": "Failed to import docker-py - No module named docker. Try `pip install docker-py`"}
+failed: [localhost] (item=5) => {"changed": false, "item": "5", "msg": "Failed to import docker-py - No module named docker. Try `pip install docker-py`"}
+	to retry, use: --limit @/var/day1/provision-docker-containers.retry
+
+PLAY RECAP *********************************************************************
+localhost                  : ok=1    changed=0    unreachable=0    failed=1   
+
+
+
+modifying the provision-docker-containers.yml  to install python and docker-py
+
+
+root@ubuntu:/var/day1# cat provision-docker-containers.yml 
+- name: Provision the docker containers using the docker_container, Demonstartion
+  hosts: localhost
+  tasks:
+          - name: Install python pip
+            apt: name=python-pip state=latest update_cache=yes
+          - name: install docker-py
+            command: pip install docker-py
+          - name: Provision Docker conatiner
+            docker_container:
+                    image: "verizon/ansible-ubuntu"
+                    name: "ubuntu{{item}}"
+                    state: started
+                    ports:
+                            - "800{{item}}:80"
+                            - "200{{item}}:22"
+            with_sequence: start=1 end=5
+
+
+
+
+root@ubuntu:/var/day1# ansible-playbook -i ansblInventory provision-docker-containers.yml 
+
+PLAY [Provision the docker containers using the docker_container, Demonstartion] ***
+
+TASK [Gathering Facts] *********************************************************
+ok: [localhost]
+
+TASK [Install python pip] ******************************************************
+ok: [localhost]
+
+TASK [install docker-py] *******************************************************
+changed: [localhost]
+
+TASK [Provision Docker conatiner] **********************************************
+changed: [localhost] => (item=1)
+changed: [localhost] => (item=2)
+changed: [localhost] => (item=3)
+changed: [localhost] => (item=4)
+changed: [localhost] => (item=5)
+
+PLAY RECAP *********************************************************************
+localhost                  : ok=4    changed=2    unreachable=0    failed=0   
+
+
+
+root@ubuntu:/var/day1# docker images
+REPOSITORY               TAG                 IMAGE ID            CREATED             SIZE
+verizon/ansible-ubuntu   latest              23d8b4a32593        22 hours ago        218MB
+nginx                    latest              e81eb098537d        3 days ago          109MB
+wordpress                latest              e362a3764092        4 days ago          408MB
+mysql                    5.7.24              ae6b78bedf88        4 days ago          372MB
+mysql                    latest              f991c20cb508        4 days ago          486MB
+ubuntu                   16.04               4a689991aa24        4 weeks ago         116MB
+ubuntu                   18.04               ea4c82dcd15a        4 weeks ago         85.8MB
+hello-world              latest              4ab4c602aa5e        2 months ago        1.84kB
+ubuntu                   latest              16508e5c265d        2 months ago        84.1MB
+
+
+removing the image
+
+docker rmi verizon/ansible-ubuntu
+
+
+root@ubuntu:/var/day1# ansible-playbook -i ansblInventory provision_docker_image.yml 
+
+PLAY [This playbook builds the docker images] **********************************
+
+TASK [Gathering Facts] *********************************************************
+ok: [localhost]
+
+TASK [Build docker image] ******************************************************
+changed: [localhost]
+
+PLAY RECAP *********************************************************************
+localhost                  : ok=2    changed=1    unreachable=0    failed=0   
+
+
+
+
+root@ubuntu:/var/day1# docker images
+REPOSITORY                        TAG                 IMAGE ID            CREATED             SIZE
+verizon/ansible-ubuntu-playbook   latest              d52b7f1f0ae3        29 seconds ago      219MB
+ubuntu                            16.04               a51debf7e1eb        14 hours ago        116MB
+nginx                             latest              e81eb098537d        3 days ago          109MB
+wordpress                         latest              e362a3764092        4 days ago          408MB
+mysql                             5.7.24              ae6b78bedf88        4 days ago          372MB
+mysql                             latest              f991c20cb508        4 days ago          486MB
+ubuntu                            <none>              4a689991aa24        4 weeks ago         116MB
+ubuntu                            18.04               ea4c82dcd15a        4 weeks ago         85.8MB
+hello-world                       latest              4ab4c602aa5e        2 months ago        1.84kB
+ubuntu                            latest              16508e5c265d        2 months ago        84.1MB
+root@ubuntu:/var/day1# 
+
+
+root@ubuntu:/var/day1# cat UbuntuDockerfile 
+FROM ubuntu:16.04
+
+RUN apt-get update && apt-get install -y openssh-server python-minimal
+RUN mkdir /var/run/sshd
+RUN echo 'root:root' | chpasswd
+#RUN echo 'jenkins:jenkins' | chpasswd
+RUN sed -i 's/PermitRootLogin prohibit-password/PermitRootLogin yes/' /etc/ssh/sshd_config
+
+# SSH login fix. Otherwise user is kicked off after login
+RUN sed 's@session\s*required\s*pam_loginuid.so@session optional pam_loginuid.so@g' -i /etc/pam.d/sshd
+
+#ENV NOTVISIBLE "in users profile"
+#RUN echo "export VISIBLE=now" >> /etc/profile
+
+COPY authorized_keys /root/.ssh/authorized_keys
+
+#this opens port 22 for ssh and 80 for any web-servers(http)
+EXPOSE 22
+EXPOSE 80 
+
+#configures ssh server as startup application when containers starts
+CMD ["/usr/sbin/sshd", "-D"]
 
 
 
