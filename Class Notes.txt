@@ -941,6 +941,49 @@ ubuntu3                    : ok=3    changed=2    unreachable=0    failed=0
 ubuntu4                    : ok=3    changed=2    unreachable=0    failed=0   
 
 
+Using become
+============
+
+- in the Playbook we need to mention as become: yes 
+- Also need to change in the inventory file as below:
+
+root@ubuntu:/var/day1# cat install-vim-and-tree.yml 
+- name: Demonstarte install softwares via playbook
+  hosts: all
+  become: yes
+  tasks:
+     - name: Install vim editor
+       apt: name=vim state=latest update_cache=yes
+     - name: Install tree utility
+       apt: name=tree state=latest update_cache=yes
+
+
+root@ubuntu:/var/day1# cat ansblInventory 
+[all]
+ubuntu1 ansible_port=2001 
+ubuntu2 ansible_port=2002
+ubuntu3 ansible_port=2003
+ubuntu4 ansible_port=2004
+
+[all:vars]
+ansible_host=localhost
+ansible_user=root
+ansible_private_key_file=/root/.ssh/id_rsa
+ansible_become_user=root
+ansible_become_password=root
+
+[dev]
+ubuntu1
+ubuntu2
+
+[qa]
+ubuntu2
+ubuntu3
+ubuntu4
+
+
+
+
 
 root@ubuntu:/var/day1# cat ping_playbook1.yaml 
 - name: Demonstrate ping module
