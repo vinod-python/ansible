@@ -687,10 +687,281 @@ Last login: Mon Nov 19 12:38:23 2018 from 172.17.0.1
 
 
 <some_random_name> <ansible_port=> <ansible_host=> <ansible_user=> ansible_private_key_file=/root/.ssh/id_rsa
+e.g.:
+
+ubuntu1 ansible_port=2001 ansible_host=localhost ansible_user=root ansible_private_key_file=/root/.ssh/id_rsa
 
 root@ubuntu:/var/day1# cat ansblInventory 
 [all]
 ubuntu1 ansible_port=2001 ansible_host=localhost ansible_user=root ansible_private_key_file=/root/.ssh/id_rsa
+
+
+root@ubuntu:/var/day1# ansible -i ansblInventory all -m ping
+ubuntu1 | SUCCESS => {
+    "changed": false, 
+    "ping": "pong"
+}
+
+
+
+
+list all the modules supported by module
+
+ansible-doc -l  ---- listing all the modules
+
+
+to find the details of particular module
+
+ansible-doc <module_name>
+ansible-doc file
+
+
+===============
+DaY 2:
+===============
+
+
+created two containers
+
+docker run -d --name ubuntu2 --hostname ubuntu2 -p 2002:22 verizon/ansible-ubuntu
+docker run -d --name ubuntu3 --hostname ubuntu3 -p 2003:22 verizon/ansible-ubuntu
+
+
+Sample inventory file (ansblInventory)
+======================
+root@ubuntu:/var/day1# cat ansblInventory 
+[all]
+ubuntu1 ansible_port=2001 ansible_host=localhost ansible_user=root ansible_private_key_file=/root/.ssh/id_rsa
+ubuntu2 ansible_port=2002 ansible_host=localhost ansible_user=root ansible_private_key_file=/root/.ssh/id_rsa
+ubuntu3 ansible_port=2003 ansible_host=localhost ansible_user=root ansible_private_key_file=/root/.ssh/id_rsa
+ubuntu4 ansible_port=2004 ansible_host=localhost ansible_user=root ansible_private_key_file=/root/.ssh/id_rsa
+
+
+[dev]
+ubuntu1
+ubuntu2
+
+[qa]
+ubuntu2
+ubuntu3
+ubuntu4
+
+
+ansible -i ansblInventory all -m ping ---------for all hosts
+
+
+ansible -i ansblInventory ubuntu1 -m ping -----for only ubuntu1 host
+
+ansible -i ansblInventory ubuntu1 -m setup
+
+
+ad-hoc commands:
+================
+
+root@ubuntu:/var/day1# ansible -i ansblInventory dev,qa -m shell -a "hostname"
+ubuntu3 | SUCCESS | rc=0 >>
+ubuntu3
+
+ubuntu2 | SUCCESS | rc=0 >>
+ubuntu2
+
+ubuntu1 | SUCCESS | rc=0 >>
+ubuntu1
+
+ubuntu4 | SUCCESS | rc=0 >>
+ubuntu4
+
+root@ubuntu:/var/day1# ansible -i ansblInventory dev,qa -m shell -a "pwd"
+ubuntu4 | SUCCESS | rc=0 >>
+/root
+
+ubuntu2 | SUCCESS | rc=0 >>
+/root
+
+ubuntu1 | SUCCESS | rc=0 >>
+/root
+
+ubuntu3 | SUCCESS | rc=0 >>
+/root
+
+root@ubuntu:/var/day1# 
+
+
+
+
+Witing playbook
+===============
+
+1. Files should stored with .yml or .yaml extension
+2. Sample playbook created as below:
+
+root@ubuntu:/var/day1# ls -ltr | tail -1
+-rw-r--r-- 1 root root 100 Nov 19 21:30 playbook1.yaml
+
+
+content of the file is as below :
+
+root@ubuntu:/var/day1# cat playbook1.yaml 
+- name: Demonstrate ping module
+  hosts: all
+  tasks:
+     - name: Ping the container
+       ping:
+
+
+running a playbook as below:
+
+ansible-playbook -i <inventory> <polaybook_name> 
+
+ansible-playbook -i ansblInventory playbook1.yaml 
+
+root@ubuntu:/var/day1# ansible-playbook -i ansblInventory playbook1.yaml 
+
+PLAY [Demonstrate ping module] *************************************************
+
+TASK [Gathering Facts] *********************************************************
+ok: [ubuntu3]
+ok: [ubuntu4]
+ok: [ubuntu2]
+ok: [ubuntu1]
+
+TASK [Ping the container] ******************************************************
+ok: [ubuntu3]
+ok: [ubuntu4]
+ok: [ubuntu2]
+ok: [ubuntu1]
+
+PLAY RECAP *********************************************************************
+ubuntu1                    : ok=2    changed=0    unreachable=0    failed=0   
+ubuntu2                    : ok=2    changed=0    unreachable=0    failed=0   
+ubuntu3                    : ok=2    changed=0    unreachable=0    failed=0   
+ubuntu4                    : ok=2    changed=0    unreachable=0    failed=0   
+
+
+
+root@ubuntu:/var/day1# ansible-playbook -i ansblInventory playbook1.yaml 
+
+PLAY [Demonstrate ping module] *************************************************
+
+TASK [Ping the container] ******************************************************
+ok: [ubuntu4]
+ok: [ubuntu2]
+ok: [ubuntu1]
+ok: [ubuntu3]
+
+PLAY RECAP *********************************************************************
+ubuntu1                    : ok=1    changed=0    unreachable=0    failed=0   
+ubuntu2                    : ok=1    changed=0    unreachable=0    failed=0   
+ubuntu3                    : ok=1    changed=0    unreachable=0    failed=0   
+ubuntu4                    : ok=1    changed=0    unreachable=0    failed=0   
+
+
+
+
+Prettying the ansibleInventory
+==============================
+
+root@ubuntu:/var/day1# cat ansblInventory 
+[all]
+ubuntu1 ansible_port=2001 
+ubuntu2 ansible_port=2002
+ubuntu3 ansible_port=2003
+ubuntu4 ansible_port=2004
+
+[all:vars]
+ansible_host=localhost
+ansible_user=root
+ansible_private_key_file=/root/.ssh/id_rsa
+
+[dev]
+ubuntu1
+ubuntu2
+
+[qa]
+ubuntu[2:4]
+
+
+
+root@ubuntu:/var/day1# cat ping_playbook1.yaml 
+- name: Demonstrate ping module
+  hosts: all
+  gather_facts: no
+  tasks:
+     - name: Ping the container
+       ping:
+
+
+running a playbook:
+
+ansible-playbook -i <inventory> <playbook>
+
+ansible-playbook -i ansblInventory ping_playbook1.yaml
+
+
+
+root@ubuntu:/var/day1# cat install-vim-and-tree.yml 
+- name: Demonstarte install softwares via playbook
+  hosts: all
+  become: yes
+  tasks:
+     - name: Install vim editor
+       apt: name=vim state=latest update_cache=yes
+     - name: Install tree utility
+       apt: name=tree state=latest update_cache=yes
+
+
+
+ansible-playbook -i ansblInventory install-vim-and-tree.yml 
+
+
+PLAY [Demonstarte install softwares via playbook] ******************************
+
+TASK [Gathering Facts] *********************************************************
+ok: [ubuntu1]
+ok: [ubuntu4]
+ok: [ubuntu3]
+ok: [ubuntu2]
+
+TASK [Install vim editor] ******************************************************
+changed: [ubuntu2]
+changed: [ubuntu4]
+changed: [ubuntu3]
+changed: [ubuntu1]
+
+TASK [Install tree utility] ****************************************************
+changed: [ubuntu2]
+changed: [ubuntu1]
+changed: [ubuntu3]
+changed: [ubuntu4]
+
+PLAY RECAP *********************************************************************
+ubuntu1                    : ok=3    changed=2    unreachable=0    failed=0   
+ubuntu2                    : ok=3    changed=2    unreachable=0    failed=0   
+ubuntu3                    : ok=3    changed=2    unreachable=0    failed=0   
+ubuntu4                    : ok=3    changed=2    unreachable=0    failed=0   
+
+
+
+root@ubuntu:/var/day1# cat ping_playbook1.yaml 
+- name: Demonstrate ping module
+  hosts: all
+  gather_facts: no
+  tasks:
+     - name: Ping the container
+       ping:
+     - name: check the hostname
+       shell: hostname
+     - name: check the tree command
+       shell: tree /
+       register: some_var_name
+     - name: print the output
+       debug: var=some_var_name
+
+store the output in the some_var_name using the register
+
+print the output using the debug 
+
+
 
 
 
