@@ -963,6 +963,76 @@ print the output using the debug
 
 
 
+Iterating the variables
+========================
+
+root@ubuntu:/var/day1# cat install-vim-and-tree-list.yml 
+- name: Demonstarte install softwares via playbook
+  hosts: all
+  become: yes
+  vars:
+     software_tools:
+     - vim
+     - tree
+  tasks:
+     - name: Install softwares
+       apt: name="{{item}}" state=latest update_cache=yes
+       with_items: "{{software_tools}}"
+
+
+
+root@ubuntu:/var/day1# ansible-playbook -i ansblInventory install-vim-and-tree-list.yml 
+
+PLAY [Demonstarte install softwares via playbook] ******************************
+
+TASK [Gathering Facts] *********************************************************
+ok: [ubuntu1]
+ok: [ubuntu4]
+ok: [ubuntu3]
+ok: [ubuntu2]
+
+TASK [Install softwares] *******************************************************
+ok: [ubuntu2] => (item=[u'vim', u'tree'])
+ok: [ubuntu4] => (item=[u'vim', u'tree'])
+ok: [ubuntu1] => (item=[u'vim', u'tree'])
+ok: [ubuntu3] => (item=[u'vim', u'tree'])
+
+PLAY RECAP *********************************************************************
+ubuntu1                    : ok=2    changed=0    unreachable=0    failed=0   
+ubuntu2                    : ok=2    changed=0    unreachable=0    failed=0   
+ubuntu3                    : ok=2    changed=0    unreachable=0    failed=0   
+ubuntu4                    : ok=2    changed=0    unreachable=0    failed=0   
+
+
+
+
+
+root@ubuntu:/var/day1# cat ping_playbook1.yaml 
+- name: Demonstrate ping module
+  hosts: all
+  gather_facts: no
+  vars:
+     something:
+     - test
+     - test1
+     - test2
+  tasks:
+     - name: Ping the container
+       ping:
+     - name: check the hostname
+       shell: hostname
+     - name: check the tree command
+       shell: tree /
+       register: some_var_name
+     - name: print the output
+       debug: var=some_var_name
+     - name: Iterate the items
+       shell: echo "{{item}}"
+       with_items: "{{something}}"
+
+
+
+
 
 
 References:
